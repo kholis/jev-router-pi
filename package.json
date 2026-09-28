@@ -1,6 +1,6 @@
 {
   "name": "jev-router-pi",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "Jev-powered automatic model routing for the pi coding agent across z.ai GLM models",
   "type": "module",
   "pi": {
