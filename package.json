@@ -1,0 +1,28 @@
+{
+  "name": "jev-router-pi",
+  "version": "0.1.0",
+  "description": "Jev-powered automatic model routing for the pi coding agent across z.ai GLM models",
+  "type": "module",
+  "pi": {
+    "extensions": ["./src/index.ts"]
+  },
+  "scripts": {
+    "test": "node --test \"test/**/*.test.ts\""
+  },
+  "keywords": [
+    "pi",
+    "coding-agent",
+    "model-routing",
+    "jev",
+    "typesafe",
+    "zai",
+    "glm"
+  ],
+  "engines": {
+    "node": ">=20.12"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@typesafe-ai/sdk": "^0.6.0"
+  }
+}
