@@ -8,8 +8,6 @@ import { choice } from "@typesafe-ai/sdk";
  * plan, which carries the same ids). Tiers are chosen by price then capability:
  *
  *   glm-5.3-flash  $0.075/$0.25  cheapest, 1M context, fast distilled reasoning, vision
- *   glm-4.7        $0.60/$2.20   cheap classic generation
- *   glm-5.2        $1.40/$4.40   strong frontier model
  *   glm-5.3        $1.40/$4.40   strongest reasoning, always thinks (never "off")
  */
 export interface TierSpec {
@@ -23,9 +21,7 @@ export interface TierSpec {
 
 export const TIERS: TierSpec[] = [
   { name: "air", id: "glm-5.3-flash", vision: true },
-  { name: "core", id: "glm-4.7", vision: false },
-  { name: "pro", id: "glm-5.2", vision: false },
-  { name: "max", id: "glm-5.3", vision: false },
+  { name: "pro", id: "glm-5.3", vision: false },
 ];
 
 export const TIER_NAMES = TIERS.map((t) => t.name);
@@ -104,15 +100,6 @@ export const QUESTIONS = {
         ],
         not_for: "Anything requiring design judgement or multi-file reasoning.",
       },
-      core: {
-        what: "Ordinary day-to-day engineering with a clear, bounded shape.",
-        signals: [
-          "Implement a well-specified function, endpoint, or component",
-          "Write or fix tests for existing behaviour",
-          "Localised bug fix where the cause is already understood",
-        ],
-        not_for: "Open-ended architecture, subtle concurrency, or deep unknown-cause debugging.",
-      },
       pro: {
         what: "Hard reasoning, ambiguity, or high blast radius.",
         signals: [
@@ -121,15 +108,6 @@ export const QUESTIONS = {
           "Security, auth, concurrency, data-migration, or money-handling logic",
         ],
         not_for: "Work that a competent mid-level engineer would finish without thinking hard.",
-      },
-      max: {
-        what: "Very large or very long-running tasks that exceed the others' practical reach.",
-        signals: [
-          "Whole-repo migration or framework upgrade",
-          "Task requiring an unusually large amount of context to be held at once",
-          "Long autonomous multi-hour execution",
-        ],
-        not_for: "Anything a single focused session on pro would finish.",
       },
     },
   ),

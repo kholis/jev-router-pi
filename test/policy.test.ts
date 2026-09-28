@@ -2,30 +2,29 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { decide, detectOverride } from "../src/policy.ts";
 
-const ALL = ["air", "core", "pro", "max"];
+const ALL = ["air", "pro"];
 const sure = (choice) => ({ choice, confidence: 0.95 });
 const unsure = (choice) => ({ choice, confidence: 0.3 });
 const base = { prompt: "refactor the parser", current: "pro", available: ALL, contextTokens: 0 };
 
 test("follows a confident Jev answer", () => {
-  assert.deepEqual(decide({ ...base, jev: sure("max") }), {
-    tier: "max",
+  assert.deepEqual(decide({ ...base, jev: sure("air") }), {
+    tier: "air",
     reason: "jev",
     changed: true,
   });
 });
 
 test("an explicit user override beats Jev", () => {
-  const out = decide({ ...base, prompt: "use air to fix this typo", jev: sure("max") });
+  const out = decide({ ...base, prompt: "use air to fix this typo", jev: sure("pro") });
   assert.equal(out.tier, "air");
   assert.equal(out.reason, "override");
 });
 
 test("detectOverride fires on tier names and model ids", () => {
-  assert.equal(detectOverride("switch to max"), "max");
+  assert.equal(detectOverride("switch to pro"), "pro");
   assert.equal(detectOverride("use glm-5.3-flash for this"), "air");
-  assert.equal(detectOverride("on the GLM 4.7 model"), "core");
-  assert.equal(detectOverride("the max of his career"), null);
+  assert.equal(detectOverride("the pro of his career"), null);
 });
 
 test("keeps the current model when Jev is unreachable", () => {
@@ -45,29 +44,29 @@ test("never downgrades on a low-confidence answer", () => {
   assert.match(out.reason, /low-confidence-no-downgrade/);
 });
 
-test("caps a low-confidence upgrade at the safe ceiling", () => {
-  const out = decide({ ...base, current: "air", jev: unsure("max") });
+test("allows a low-confidence upgrade up to the safe ceiling", () => {
+  const out = decide({ ...base, current: "air", jev: unsure("pro") });
   assert.equal(out.tier, "pro");
-  assert.equal(out.reason, "low-confidence-capped");
+  assert.equal(out.reason, "jev");
 });
 
-test("still allows a confident upgrade to max", () => {
-  assert.equal(decide({ ...base, jev: sure("max") }).tier, "max");
+test("still allows a confident upgrade to pro", () => {
+  assert.equal(decide({ ...base, current: "air", jev: sure("pro") }).tier, "pro");
 });
 
 test("refuses a downgrade once the cache rebuild costs more than it saves", () => {
-  const out = decide({ ...base, current: "max", jev: sure("air"), contextTokens: 80000 });
-  assert.equal(out.tier, "max");
+  const out = decide({ ...base, current: "pro", jev: sure("air"), contextTokens: 80000 });
+  assert.equal(out.tier, "pro");
   assert.match(out.reason, /cache-rebuild/);
 });
 
 test("allows the same downgrade early in a conversation", () => {
-  assert.equal(decide({ ...base, current: "max", jev: sure("air") }).tier, "air");
+  assert.equal(decide({ ...base, current: "pro", jev: sure("air") }).tier, "air");
 });
 
 test("unknown current model (other provider) takes Jev's answer", () => {
-  const out = decide({ ...base, current: null, jev: sure("core") });
-  assert.equal(out.tier, "core");
+  const out = decide({ ...base, current: null, jev: sure("pro") });
+  assert.equal(out.tier, "pro");
   assert.equal(out.changed, true);
 });
 
@@ -81,31 +80,32 @@ test("substitutes upward when the chosen tier is unavailable", () => {
   const out = decide({
     ...base,
     current: "air",
-    available: ["air", "max"],
-    jev: sure("core"),
+    available: ["pro"],
+    jev: sure("air"),
   });
-  assert.equal(out.tier, "max");
+  assert.equal(out.tier, "pro");
   assert.match(out.reason, /unavailable/);
 });
 
 test("falls back to current when nothing is available", () => {
-  const out = decide({ ...base, available: [], jev: sure("core") });
+  const out = decide({ ...base, available: [], jev: sure("pro") });
   assert.equal(out.tier, "pro");
   assert.equal(out.changed, false);
   assert.match(out.reason, /unavailable/);
 });
 
-test("steps up to a vision tier when the prompt carries images", () => {
+test("keeps the current model when the chosen tier cannot see images", () => {
   const out = decide({
     ...base,
-    current: "air",
+    current: "pro",
     available: ALL,
-    visionTiers: ["pro"],
+    visionTiers: ["air"],
     needsVision: true,
-    jev: sure("air"),
+    jev: sure("pro"),
   });
   assert.equal(out.tier, "pro");
-  assert.match(out.reason, /vision/);
+  assert.equal(out.changed, false);
+  assert.equal(out.reason, "vision-unavailable");
 });
 
 test("keeps the current model when no vision tier exists", () => {

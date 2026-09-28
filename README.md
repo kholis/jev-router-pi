@@ -93,13 +93,11 @@ Defined in `src/config.ts`, cheapest first — edit that file to change the whol
 | Tier | Model | In $/M (in/out) | Notes |
 | --- | --- | --- | --- |
 | `air` | glm-5.3-flash | 0.075 / 0.25 | cheapest, 1M context, vision |
-| `core` | glm-4.7 | 0.60 / 2.20 | classic generation |
-| `pro` | glm-5.2 | 1.40 / 4.40 | frontier, safe ceiling when Jev is unsure |
-| `max` | glm-5.3 | 1.40 / 4.40 | strongest reasoning, always thinks |
+| `pro` | glm-5.3 | 1.40 / 4.40 | strongest reasoning, always thinks, safe ceiling when Jev is unsure |
 
 Thinking levels: pi clamps the session's thinking level to whatever the routed model supports
-(via each model's `thinkingLevelMap`). `air`/`max` never run with thinking fully off; your
-level survives tier switches that support it.
+(via each model's `thinkingLevelMap`). `air` and `pro` never run with thinking fully off;
+your level survives tier switches that support it.
 
 ## Differences from the Claude Code version
 
